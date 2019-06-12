@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.imooc.mapper.VideosMapper" >
+  <resultMap id="BaseResultMap" type="com.imooc.pojo.Videos" >
+    <!--
+      WARNING - @mbg.generated
+    -->
+    <id column="id" property="id" jdbcType="VARCHAR" />
+    <result column="user_id" property="userId" jdbcType="VARCHAR" />
+    <result column="audio_id" property="audioId" jdbcType="VARCHAR" />
+    <result column="video_desc" property="videoDesc" jdbcType="VARCHAR" />
+    <result column="video_path" property="videoPath" jdbcType="VARCHAR" />
+    <result column="video_seconds" property="videoSeconds" jdbcType="REAL" />
+    <result column="video_width" property="videoWidth" jdbcType="INTEGER" />
+    <result column="video_height" property="videoHeight" jdbcType="INTEGER" />
+    <result column="cover_path" property="coverPath" jdbcType="VARCHAR" />
+    <result column="like_counts" property="likeCounts" jdbcType="BIGINT" />
+    <result column="status" property="status" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="face_image" property="faceImage" jdbcType="INTEGER" />
+    <result column="nickname" property="nickname" jdbcType="TIMESTAMP" />
+  </resultMap>
+
+
+  <select id="queryAllVideos" resultMap="BaseResultMap">
+      select v.*,u.face_image,u.nickname from videos v
+      left join users u on u.id=v.user_id
+      where v.status=1
+      <if test="desc!=null and desc!=''">
+          and v.video_desc like concat('%', concat(#{desc},'%'))
+      </if>
+      <if test=" userId != null and userId != '' ">
+          and v.user_id = #{userId}
+      </if>
+      order by v.create_time DESC
+  </select>
+
+
+    <update id="addVideoLikeCounts" >
+        update videos set like_counts=like_counts+1
+        where id=#{videoId}
+    </update>
+
+    <update id="reduceVideoLikeCounts" >
+        update videos set like_counts=like_counts-1
+        where id=#{videoId}
+    </update>
+
+    <!--查询我喜欢的视频-->
+    <select id="showMyLike" resultMap="BaseResultMap">
+        SELECT
+          v.*
+        FROM
+            users_like_videos uv
+        LEFT JOIN videos v ON v.id = uv.video_id
+        where uv.user_id=#{userId}
+    </select>
+
+    <!--查询我关注的人发布的视频-->
+    <select id="showMyFollow" resultMap="BaseResultMap">
+        SELECT
+	      v.*
+        FROM
+            users_fans uf
+        LEFT JOIN videos v ON v.user_id = uf.user_id
+        WHERE
+            uf.fan_id = #{userId}
+    </select>
+</mapper>
